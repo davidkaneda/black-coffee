@@ -1,0 +1,10 @@
+<div class="card">
+    <div class="front <%= @suit %>">
+        <% if !@facedown: %>
+        <h3><%= @shortName %></h3>
+        <h3><%= @shortName %></h3>
+        <% end %>
+    </div>
+    <div class="back">
+    </div>
+</div>

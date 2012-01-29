@@ -1,0 +1,16 @@
+{
+  "dependencies": [
+    "spine",
+    "jqueryify"
+  ],
+  "unused": [
+    "spine/lib/ajax",
+    "spine/lib/local",
+    "spine/lib/route",
+    "spine/lib/tmpl",
+    "spine/lib/manager",
+    "es5-shimify", 
+    "json2ify"
+  ],
+  "libs": []
+}

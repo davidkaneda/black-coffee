@@ -1,0 +1,13 @@
+<div class="player">
+    <h2><%= @name %></h2>
+    <div class="cards">
+        
+    </div>
+
+    <% if !@.isDealer: %>
+        <div class="stats">
+            <div class="bankroll">Bank: $<span><%= @bankroll - @currentBet %></div>
+            <div class="bankroll">Bank: $<span><%= @bankroll - @currentBet %></div>
+        </div>
+    <% end %>
+</div>

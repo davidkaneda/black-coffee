@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset=utf-8>
+  <title>App</title>
+  <link rel="stylesheet" href="/application.css" type="text/css" charset="utf-8">
+  <script src="/application.js" type="text/javascript" charset="utf-8"></script>
+  <script type="text/javascript" charset="utf-8">
+    var jQuery  = require("jqueryify");
+    var exports = this;
+    $(function(){
+      var App = require("index");
+      exports.app = new App({el: $("body")});
+    });
+  </script>
+</head>
+<body>
+  <div id="dealer"></div>
+
+  <div id="player-1"></div>
+  <div class="bet-controls">
+    <input type="number" name="wager" value="40" min="20" max="1000">
+    <input type="button" name="new" value="Place bet">
+  </div>
+  
+  <div class="player-controls disabled">
+    <input type="button" name="hit" value="hit">
+    <input type="button" name="stand" value="stand">
+    <input type="button" name="double" value="double">
+    <input type="button" name="split" value="split">
+    <input type="button" name="surrender" value="surrender">
+  </div><br>
+
+</body>
+</html>
