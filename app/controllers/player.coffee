@@ -8,6 +8,10 @@ class Player extends Spine.Controller
   bankroll: 1000
   currentBet: 40
 
+  # Should do this sometime...
+  # bindings:
+  #   ''
+
   # 1: Hit
   # 2: Stand
   # 3: Double
@@ -48,13 +52,16 @@ class Player extends Spine.Controller
   constructor: ->
     super
     @render()
+    @$flash = @$('.flash')
 
   render: ->
     @el.html require('views/player')(@)
 
   bet: (newbet) ->
     @currentBet = parseInt newbet if newbet
+    $('input[name=wager]').val(newbet) if newbet
     @$('.bankroll span').html @bankroll - @currentBet
+    @$('.bet span').html @currentBet
 
   checkStrategy: (hand, dealercard) ->
     if hand.canSplit
@@ -74,7 +81,20 @@ class Player extends Spine.Controller
       when 3 then bp = 'player should double down.'
       when 4, 5 then bp = 'player should split.'
       when 6 then bp = 'player should surrender.'
-    
-    @log "Basic Strategy: #{ @name } has #{ hand.score } against a #{ dealercard }, #{ bp }", hand
+
+    @$('.strategy').html "#{ hand.score } against a #{ dealercard }, #{ bp }"
+    @log hand
+  
+  flash: (msg, cls, autoclear) ->
+    cls ?= 'info'
+    clearTimeout @flashVisible?
+    if msg then @$flash.html(msg).prop('class', "flash #{ cls }").show(200) else @hideFlash
+    setTimeout @hideFlash, 2500
+  
+  hideFlash: => @$flash.hide( 200 )
+
+  clearMessages: ->
+    @hideFlash
+    @$('.strategy').hide()
 
 module.exports = Player

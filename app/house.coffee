@@ -1,8 +1,10 @@
+require('lib/setup')
+
 Spine = require('spine')
 Shoe = require('models/shoe')
-Player = require('controllers/player')
 Hand = require('models/hand')
-Table = require('controllers/table')
+Player = require('controllers/player')
+PlayerControls = require('controllers/player_controls')
 
 class House extends Spine.Controller
   el: $('body')
@@ -27,6 +29,8 @@ class House extends Spine.Controller
   constructor: () ->
     super
 
+    @controls = new PlayerControls
+
     @dealer = new Player(name: 'Dealer', el: $('#dealer'), isDealer: true)
     @players.push new Player(name: 'Dave', el: $('#player-1'))
     # @players.push new Player(name: 'Player 2', el: $('#player-2'))
@@ -39,8 +43,6 @@ class House extends Spine.Controller
     @controls.bind 'play', => @controls.updateControls @activeHand
 
     @shoe = new Shoe(decks: @settings.deckSize)
-
-    @table = new Table(house: @)
 
     @log "Shuffling", @shoe ,"with #{ @shoe.cards.length } cards (#{ @settings.deckSize } decks)"
   
@@ -91,17 +93,19 @@ class House extends Spine.Controller
     @log "It is #{hand.player.name}'s turn."
 
     if hand.hasBlackjack
-      @nextHand()
+      @activeHand.currentBet *= 1.5
+      @activeHand.player.flash('Blackjack!', 'win')
+      @concludeHand()
     else if hand.score is 21
-      @log "Automatically standing on 21"
-      @nextHand()
+      @log "#{ hand.player.name } has 21."
+      @concludeHand()
     else
       @controls.enable()
       hand.player.checkStrategy hand, @dealer.hand.cards[1].value
     
   dealDealerHand: =>
     @controls.disable()
-    
+    @dealer.hand.turnOverCard @dealer.hand.cards[0]
     @log "#{ @dealer.name } reveals a #{ @dealer.hand.cards[0].shortName + @dealer.hand.cards[0].shortSuit} and has #{ @dealer.hand.score }"
 
     while @dealer.hand.score < 18
@@ -115,26 +119,20 @@ class House extends Spine.Controller
     @concludeHand()
     @playedHands.push @dealer.hand
 
-  hitActiveHand: =>
+  hitActiveHand: (doubledown) =>
     @dealCardToHand @activeHand
 
     if @activeHand.hasBusted
-      @log "#{ @activeHand.player.name } busted with #{ @activeHand.score}"
+      @endActiveHand()
+    else if doubledown
+      @activeHand.player.bet @activeHand.player.currentBet *= 2
       @endActiveHand()
     else
       @activeHand.player.checkStrategy(@activeHand, @dealer.hand.cards[1].value)
   
-  endActiveHand: =>
-    @controls.disable()
-    @controls.reset()
-    @bet.show()
-    @nextHand()
-  
   doubleActiveHand: =>
     @log "#{ @activeHand.player.name } is doubling down!"
-    @activeHand.player.currentBet *= 2
-    @hitActiveHand()
-    @endActiveHand()
+    @hitActiveHand(true)
 
   splitActiveHand: =>
     @log "#{ @activeHand.player.name } is splitting."
@@ -145,15 +143,22 @@ class House extends Spine.Controller
     @hands.unshift secondhand
     @hitActiveHand()
 
+  endActiveHand: =>
+    @activeHand.player.clearMessages()
+    @controls.disable()
+    @controls.reset()
+    @bet.show()
+    @nextHand()
+
   dealCardToHand: (hand) -> hand.takeCard @shoe.drawCard()
 
   dealCardToSelf: (hand, round) ->
-    card = @shoe.drawCard(facedown: true)
+    card = @shoe.drawCard( round isnt 1 ) 
     hand.takeCard card
     @log if round isnt 1 then "Dealing the #{ card.shortName + card.shortSuit } to the dealer." else "Dealing face down to dealer."
 
     return card
-   
+
   concludeHand: ->
     for hand in @playedHands
       @log hand.player.bankroll
@@ -161,10 +166,15 @@ class House extends Spine.Controller
         @log hand.player.currentBet
         @log ":) #{ hand.player.name } wins #{ hand.player.currentBet }."
         hand.player.bankroll += hand.player.currentBet
+        hand.player.flash("Win $#{ hand.player.currentBet }!", 'win')
+
       else if hand.score < @dealer.hand.score || hand.hasBusted
         @log ":( #{ hand.player.name } loses #{ hand.player.currentBet }."
         hand.player.bankroll -= hand.player.currentBet
+        hand.player.flash("Lost $#{ hand.player.currentBet }.", 'loss')
+
       else if hand.score is @dealer.hand.score
+        hand.player.flash("Push.")
         @log ":| #{ hand.player.name } pushes."
       
       # Just to update the display for the next one

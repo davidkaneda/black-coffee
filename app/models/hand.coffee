@@ -15,11 +15,17 @@ class Hand extends Spine.Controller
   constructor: ->
     super
     @cards = []
-    @player.el.append @el
+    @el = @render().appendTo(@player.el)
+    @$scoreCount = @$('.score')
+    @log @$scoreCount
+
+  render: -> require('views/hand')(@)
 
   takeCard: (card) =>
     @cards.push card
-    @score += card.value
+    @log card
+    @score += card.value if !card.facedown
+
     @softAces++ if card.value is 11
     @hasBlackjack = true if @score is 21 and @isFirstPlay()
     @canSplit = true if @cards[0].value is @cards[1]?.value and @isFirstPlay()
@@ -27,12 +33,18 @@ class Hand extends Spine.Controller
     if @score > 21
       if @softAces > 0 then @convertAce() else @bust()
 
-    @el.append require('views/card')(card)
+    card.el = @el.append require('views/card')(card)
+    @updateScore()
   
+  turnOverCard: (card) ->
+    card.facedown = false
+    card.el.html require('views/card')(card)
+
   convertAce: ->
     @score -= 10
     @softAces--
     if @score > 21 then @bust()
+    @updateScore()
   
   split: ->
     @canSplit = false
@@ -40,10 +52,13 @@ class Hand extends Spine.Controller
     @score -= card.value
     @softAces-- if card.value is 11
     card
+    @updateScore()
 
   bust: ->
-    @el.append('<span class="busted">Busted</span>')
+    @player.flash('Busted', 'loss')
     @hasBusted = true
+
+  updateScore: -> @$scoreCount.html @score
 
   isSoft: -> @softAces.length > 0
   isFirstPlay: -> @cards.length is 2

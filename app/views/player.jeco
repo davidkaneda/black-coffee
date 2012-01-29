@@ -3,11 +3,17 @@
     <div class="cards">
         
     </div>
+    <div class="flash">
+    </div>
 
     <% if !@.isDealer: %>
         <div class="stats">
             <div class="bankroll">Bank: $<span><%= @bankroll - @currentBet %></div>
-            <div class="bankroll">Bank: $<span><%= @bankroll - @currentBet %></div>
+            <div class="bet">Bet: $<span><%= @currentBet %></div>
         </div>
     <% end %>
+
+    <div class="strategy">
+        
+    </div>
 </div>
