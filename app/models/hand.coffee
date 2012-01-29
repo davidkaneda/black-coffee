@@ -17,13 +17,11 @@ class Hand extends Spine.Controller
     @cards = []
     @el = @render().appendTo(@player.el)
     @$scoreCount = @$('.score')
-    @log @$scoreCount
 
   render: -> require('views/hand')(@)
 
   takeCard: (card) =>
     @cards.push card
-    @log card
     @score += card.value if !card.facedown
 
     @softAces++ if card.value is 11
@@ -33,12 +31,14 @@ class Hand extends Spine.Controller
     if @score > 21
       if @softAces > 0 then @convertAce() else @bust()
 
-    card.el = @el.append require('views/card')(card)
+    card.el = require('views/card')(card).appendTo( @$('.cards') )
     @updateScore()
   
   turnOverCard: (card) ->
+    @log 'turning over card', card
+    @score += card.value
     card.facedown = false
-    card.el.html require('views/card')(card)
+    card.el.replaceWith require('views/card')(card)
 
   convertAce: ->
     @score -= 10

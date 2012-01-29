@@ -25,8 +25,10 @@ class Shoe extends Spine.Model
         @runningCount--
       else if card.value < 7
         @runningCount++
+
     card.facedown = facedown
-    console.log "Dealing #{ card.shortName + card.shortSuit if !facedown }", card, "(running count is #{ @runningCount })"
+
+    console.log "Dealing #{ if !facedown then (card.shortName + card.shortSuit) else 'facedown' }", card, "(running count is #{ @runningCount })"
 
     card
 

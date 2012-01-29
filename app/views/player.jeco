@@ -1,8 +1,5 @@
 <div class="player">
     <h2><%= @name %></h2>
-    <div class="cards">
-        
-    </div>
     <div class="flash">
     </div>
 

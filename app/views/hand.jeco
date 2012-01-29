@@ -1,3 +1,4 @@
 <div class="hand">
+    <div class="cards"></div>
     Score: <span class="score"></span><br>
 </div>

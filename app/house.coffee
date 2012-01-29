@@ -36,7 +36,7 @@ class House extends Spine.Controller
     # @players.push new Player(name: 'Player 2', el: $('#player-2'))
 
     @controls.bind 'hit', @hitActiveHand
-    @controls.bind 'stand', @endActiveHand
+    @controls.bind 'stand', @standActiveHand
     @controls.bind 'double', @doubleActiveHand
     @controls.bind 'split', @splitActiveHand
 
@@ -93,19 +93,19 @@ class House extends Spine.Controller
     @log "It is #{hand.player.name}'s turn."
 
     if hand.hasBlackjack
-      @activeHand.currentBet *= 1.5
-      @activeHand.player.flash('Blackjack!', 'win')
-      @concludeHand()
+      @nextHand()
     else if hand.score is 21
       @log "#{ hand.player.name } has 21."
-      @concludeHand()
+      @nextHand()
     else
       @controls.enable()
       hand.player.checkStrategy hand, @dealer.hand.cards[1].value
     
   dealDealerHand: =>
     @controls.disable()
+
     @dealer.hand.turnOverCard @dealer.hand.cards[0]
+
     @log "#{ @dealer.name } reveals a #{ @dealer.hand.cards[0].shortName + @dealer.hand.cards[0].shortSuit} and has #{ @dealer.hand.score }"
 
     while @dealer.hand.score < 18
@@ -130,6 +130,10 @@ class House extends Spine.Controller
     else
       @activeHand.player.checkStrategy(@activeHand, @dealer.hand.cards[1].value)
   
+  standActiveHand: => 
+    @log "#{ @activeHand.player.name } stands."
+    @endActiveHand()
+
   doubleActiveHand: =>
     @log "#{ @activeHand.player.name } is doubling down!"
     @hitActiveHand(true)
@@ -153,29 +157,31 @@ class House extends Spine.Controller
   dealCardToHand: (hand) -> hand.takeCard @shoe.drawCard()
 
   dealCardToSelf: (hand, round) ->
-    card = @shoe.drawCard( round isnt 1 ) 
+    card = @shoe.drawCard( round is 1 ) 
     hand.takeCard card
-    @log if round isnt 1 then "Dealing the #{ card.shortName + card.shortSuit } to the dealer." else "Dealing face down to dealer."
-
     return card
 
   concludeHand: ->
     for hand in @playedHands
       @log hand.player.bankroll
-      if @dealer.hand.hasBusted or ( hand.score > @dealer.hand.score ) and !hand.hasBusted
-        @log hand.player.currentBet
+      if hand.hasBlackjack and !@dealer.hand.hasBlackjack
+        hand.player.bankroll += hand.player.currentBet * 1.5
+        @log ":) #{ hand.player.name } wins #{ hand.player.currentBet * 1.5 }."
+        hand.player.flash("Win $#{ hand.player.currentBet * 1.5 }!", 'win')
+
+      else if ( @dealer.hand.hasBusted or ( hand.score > @dealer.hand.score ) ) and !hand.hasBusted
         @log ":) #{ hand.player.name } wins #{ hand.player.currentBet }."
         hand.player.bankroll += hand.player.currentBet
         hand.player.flash("Win $#{ hand.player.currentBet }!", 'win')
 
-      else if hand.score < @dealer.hand.score || hand.hasBusted
+      else if hand.score < @dealer.hand.score or hand.hasBusted
         @log ":( #{ hand.player.name } loses #{ hand.player.currentBet }."
         hand.player.bankroll -= hand.player.currentBet
         hand.player.flash("Lost $#{ hand.player.currentBet }.", 'loss')
 
       else if hand.score is @dealer.hand.score
-        hand.player.flash("Push.")
         @log ":| #{ hand.player.name } pushes."
+        hand.player.flash("Push.")
       
       # Just to update the display for the next one
       hand.player.bet()

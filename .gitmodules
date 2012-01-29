@@ -1,0 +1,3 @@
+[submodule "theme/recipes"]
+	path = theme/recipes
+	url = git@github.com:senchalabs/compass-recipes.git
