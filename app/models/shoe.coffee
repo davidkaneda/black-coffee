@@ -14,8 +14,7 @@ class Shoe extends Spine.Model
     @cards = new Deck().cards for i in [1..@decks]
     @shuffle() if @preShuffle;
 
-  shuffle: ->
-    @cards.sort -> 0.5 - Math.random()
+  shuffle: -> @cards.sort -> 0.5 - Math.random()
   
   drawCard: (facedown) ->
     card = @cards.pop()

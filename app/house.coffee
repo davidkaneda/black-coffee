@@ -7,9 +7,11 @@ Player = require('controllers/player')
 PlayerControls = require('controllers/player_controls')
 
 class House extends Spine.Controller
-  el: $('body')
   @extend Spine.Events
-  settings: { deckSize: 6 }
+
+  el: $('body')
+  settings:
+    deckSize: 6
   discarded: []
   players: []
   
@@ -67,6 +69,7 @@ class House extends Spine.Controller
     if @dealer.hand.cards[1].value is 11
       @log 'offerInsurance'
       if @checkForBlackjack()
+        @dealer.hand.turnOverCard @dealer.hand.cards[0]
         @log "payInsurance"
         @concludeHand()
       else
